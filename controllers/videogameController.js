@@ -6,7 +6,7 @@ const videogames = require('../data/db.js');
 function show(req, res) {
     const id = req.params.id
 
-    const videogameSql = `SELECT * FROM movies WHERE id = ?`
+    const videogameSql = `SELECT * FROM videogames WHERE id = ?`
 
     connection.query(videogameSql, [id], (err, videogameResult) => {
         if (err) {
