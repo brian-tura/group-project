@@ -8,22 +8,71 @@ function index(req, res){
     })
 }
 
-function show(req, res) {
+function show(req, res){
     const id = req.params.id
 
-    const videogameSql = `SELECT * FROM videogames WHERE id = ?`
+    // queries
+    const videogameQuery = `SELECT * FROM videogames WHERE id = ?`
+    const videogamePlatformsQuery = `
+        SELECT *
+        FROM videogame_platform
+        JOIN platforms
+        ON videogame_platform.platform_id = platforms.id
+        WHERE videogame_id = ?
+        `;
+    const videogamePublisherQuery = `
+        SELECT *
+        FROM publishers
+        JOIN videogames
+        ON publishers.id = videogames.publisher_id
+        WHERE videogames.id = ?
+    `;
+    const videogameGenresQuery = `
+        SELECT *
+        FROM videogame_genre
+        JOIN genres
+        ON videogame_genre.genre_id = genres.id
+        WHERE videogame_genre.videogame_id = ?;
+    `;
 
-    connection.query(videogameSql, [id], (err, videogameResult) => {
-        if (err) {
-            return res.status(500).json({ error: "Database query failed" })
+    connection.query(videogameQuery, [id], (err, videogameResult) => {
+        if(err) return res.status(500).json({error: "Database query failed"});
+        
+        if (videogameResult.length === 0 || !videogameResult) {
+            return res.status(404).send({
+                error: 'Not Found',
+                message: 'Movie not found'
+            })
         }
 
-        if (videogameResult.length === 0 || videogameResult[0].id === null) {
-            return res.status(404).json({ error: 'Not Found' })
-        }
+        connection.query(videogamePlatformsQuery, [id], (err, videogamePlatformResult) => {
 
-        res.json(videogameResult)
+            if(err) return res.status(500).json({error: "Database query failed"})
+
+            videogameResult[0].platforms = videogamePlatformResult
+
+        })
+
+        connection.query(videogamePublisherQuery, [id], (err, videogamePublisherResult) => {
+
+            if(err) return res.status(500).json({error: "Database query failed"})
+
+            videogameResult[0].publisher = videogamePublisherResult
+
+        })
+
+        connection.query(videogameGenresQuery, [id], (err, videogameGenresResult) => {
+
+            if(err) return res.status(500).json({error: "Database query failed"})
+
+            videogameResult[0].genres = videogameGenresResult
+
+            res.status(200).json(videogameResult)
+        })
     })
+   
 }
+
+
 
 module.exports = {index, show}
