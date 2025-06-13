@@ -1,3 +1,4 @@
+const express = require('express')
 const router = express.Router()
 
 const videogameController = require(`../controllers/videogameController.js`)
