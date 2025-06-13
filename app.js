@@ -15,6 +15,9 @@ app.get('/', (req, res) => {
     res.send('I miei posts')
 });
 
+app.use(errorsHandler)
+app.use(notFoundHandler)
+
 app.listen(port, () => {
     console.log(`App in ascolto sulla porta ${port}`);
 });
