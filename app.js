@@ -2,6 +2,8 @@ const express = require('express');
 
 const app = express();
 
+const imagePathMiddleware = require('./middlewares/imagePath')
+
 const cors = require('cors');
 
 const port = process.env.SERVER_PORT || 3000;
@@ -22,6 +24,8 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/videogames', videogamesRouter);
+
+app.use(imagePathMiddleware)
 
 app.use(errorsHandler);
 app.use(notFoundHandler);
