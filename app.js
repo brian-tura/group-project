@@ -5,6 +5,7 @@ const app = express();
 const port = 3000;
 
 const errorsHandler = require('./middlewares/errorsHandler')
+const notFoundHandler = require('./middlewares/notFound')
 
 app.use(express.json());
 
