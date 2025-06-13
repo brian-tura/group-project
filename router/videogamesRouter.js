@@ -1,6 +1,6 @@
 const router = express.Router()
 
-const videogameController = require(`../videogameController.js`)
+const videogameController = require(`../controllers/videogameController.js`)
 
 router.get(`/`, videogameController.index);
 
