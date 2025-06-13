@@ -1,5 +1,13 @@
 const connection = require('../data/db.js');
 
+function index(req, res){
+    connection.query("SELECT * FROM videogames", (err, videogamesResult) => {
+        if(err) return res.status(500).json({error: "Database query failed"});
+
+        res.status(200).json({success: true, data: videogamesResult})
+    })
+}
+
 function show(req, res) {
     const id = req.params.id
 
@@ -18,4 +26,4 @@ function show(req, res) {
     })
 }
 
-module.exports = {show}
+module.exports = {index, show}
