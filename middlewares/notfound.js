@@ -5,8 +5,7 @@ function notFound (err, req, res, next) {
         error: 'Not found',
         message: 'Errore! Pagina non trovata'
     });
-
-    console.log(notFound);
+    next()
 };
 
 module.exports = notFound;

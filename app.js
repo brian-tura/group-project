@@ -4,6 +4,8 @@ const app = express();
 
 const port = 3000;
 
+const errorsHandler = require('./middlewares/errorsHandler')
+
 app.use(express.json());
 
 app.use(express.static('public'));
