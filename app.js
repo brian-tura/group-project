@@ -2,9 +2,13 @@ const express = require('express');
 
 const app = express();
 
-const port = 3000;
+const cors = require('cors')
+
+const port = process.env.SERVER_PORT || 3000;
 
 app.use(express.json());
+
+app.use(cors({ origine: process.env.FE_APP }))
 
 app.use(express.static('public'));
 
