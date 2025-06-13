@@ -1,4 +1,4 @@
-const videogames = require('../data/videogamesList.js');
+const videogames = require('../data/db.js');
 
 
 

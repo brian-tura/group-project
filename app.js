@@ -2,25 +2,29 @@ const express = require('express');
 
 const app = express();
 
-const cors = require('cors')
+const cors = require('cors');
 
 const port = process.env.SERVER_PORT || 3000;
 
-const errorsHandler = require('./middlewares/errorsHandler')
-const notFoundHandler = require('./middlewares/notFound')
+const videogamesRouter = require('./router/videogamesRouter');
+
+const errorsHandler = require('./middlewares/errorsHandler');
+const notFoundHandler = require('./middlewares/notFound');
 
 app.use(express.json());
 
-app.use(cors({ origine: process.env.FE_APP }))
+app.use(cors({ origine: process.env.FE_APP }));
 
 app.use(express.static('public'));
 
 app.get('/', (req, res) => {
-    res.send('I miei posts')
+    res.send('I miei videogiochi')
 });
 
-app.use(errorsHandler)
-app.use(notFoundHandler)
+app.use('/api/videogames', videogamesRouter);
+
+app.use(errorsHandler);
+app.use(notFoundHandler);
 
 app.listen(port, () => {
     console.log(`App in ascolto sulla porta ${port}`);
