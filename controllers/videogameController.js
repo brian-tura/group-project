@@ -1,7 +1,4 @@
-const videogames = require('../data/db.js');
-
-
-
+const connection = require('../data/db.js');
 
 function show(req, res) {
     const id = req.params.id
