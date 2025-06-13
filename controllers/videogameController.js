@@ -9,7 +9,7 @@ function show(req, res) {
     if(!videogame) {
         res.sendStatus(404)
     }
-    res.json(post)
+    res.json(videogame)
 }
 
 module.exports = {show}
