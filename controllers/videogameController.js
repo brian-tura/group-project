@@ -21,11 +21,11 @@ function show(req, res){
         WHERE videogame_id = ?
         `;
     const videogamePublisherQuery = `
-        SELECT *
-        FROM publishers
-        JOIN videogames
-        ON publishers.id = videogames.publisher_id
-        WHERE videogames.id = ?
+        SELECT publishers.id, publishers.name
+        FROM videogames
+        JOIN publishers
+        ON videogames.publisher_id = publishers.id
+        WHERE videogames.id = 1
     `;
     const videogameGenresQuery = `
         SELECT *
@@ -41,7 +41,7 @@ function show(req, res){
         if (videogameResult.length === 0 || !videogameResult) {
             return res.status(404).send({
                 error: 'Not Found',
-                message: 'Movie not found'
+                message: 'Videogame not found'
             })
         }
 
