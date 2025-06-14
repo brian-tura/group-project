@@ -14,7 +14,7 @@ function show(req, res){
     // queries
     const videogameQuery = `SELECT * FROM videogames WHERE id = ?`
     const videogamePlatformsQuery = `
-        SELECT *
+        SELECT platforms.id, platforms.name
         FROM videogame_platform
         JOIN platforms
         ON videogame_platform.platform_id = platforms.id
@@ -28,7 +28,7 @@ function show(req, res){
         WHERE videogames.id = 1
     `;
     const videogameGenresQuery = `
-        SELECT *
+        SELECT genres.id, genres.name
         FROM videogame_genre
         JOIN genres
         ON videogame_genre.genre_id = genres.id
