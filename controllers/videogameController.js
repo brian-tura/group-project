@@ -6,7 +6,7 @@ function index(req, res) {
    *    QUERIES
    *************************
    * WHERE ... IN -> array -> (?)
-   * WHERE ... = -> single elemrnt
+   * WHERE ... = -> single element ?
    */
   const videogamesQuery = `
     SELECT *
@@ -41,17 +41,17 @@ function index(req, res) {
    * 3 - connectio to get videogames publisherby videogames ids
    * 4 - connection to get videogames genres by videogames ids
    *
-   * - use result to filter() platfporms and genres and find() publisher
+   * - use result to filter() platforms and genres and find() publisher
    * - return NEW composite videogames
    */
 
   connection.query(videogamesQuery, (err, videogamesResult) => {
     if (err) return res.status(500).json({ error: "Database query failed" });
-    // console.log("videogamesResult", videogamesResult);
+    console.log("videogamesResult", videogamesResult);
 
     // store videogame ids
     const ids = videogamesResult.map((videogame) => videogame.id);
-    // console.log('array di id', ids);
+    // console.log("array di id", ids);
 
     // get platforms
     connection.query(
@@ -60,7 +60,7 @@ function index(req, res) {
       (error, videogamePlatformsResults) => {
         if (error)
           return res.status(500).json({ error: "Database query failed" });
-        // console.log("videogamePlatforms: ", videogamePlatformsResults);
+        console.log("videogamePlatforms: ", videogamePlatformsResults);
 
         // get publishers
         connection.query(
@@ -86,38 +86,44 @@ function index(req, res) {
                  *  composition of videogame with joined properties
                  *
                  */
-                const compositeVideogame = videogamesResult.map((videogame) => {
-                  const platforms = videogamePlatformsResults
-                    .filter(
-                      (platform) => platform.videogame_id === videogame.id
-                    )
-                    .map((platform) => ({
-                      id: platform.platform_id,
-                      name: platform.name,
-                    }));
-                  const publisher =
-                    videogamePublisherResult.find(
-                      (publisher) => publisher.id === videogame.publisher_id
-                    ) || null;
-                  const genres = videogameGenresResults
-                    .filter((genre) => genre.videogame_id === videogame.id)
-                    .map((genre) => ({
-                      id: genre.genre_id,
-                      name: genre.name,
-                    }));
+                const compositeVideogames = videogamesResult.map(
+                  (videogame) => {
+                    const platforms = videogamePlatformsResults
+                      .filter(
+                        (platform) => platform.videogame_id === videogame.id
+                      )
+                      .map((platform) => ({
+                        id: platform.platform_id,
+                        name: platform.name,
+                      }));
+                    console.log(platforms);
 
-                  return {
-                    ...videogame,
-                    platforms: platforms,
-                    publisher: publisher,
-                    genres: genres,
-                  };
-                });
-                console.log("composite videogame: ", compositeVideogame);
+                    const publisher =
+                      videogamePublisherResult.find(
+                        (publisher) => publisher.id === videogame.publisher_id
+                      ) || null;
+                    console.log(publisher);
+
+                    const genres = videogameGenresResults
+                      .filter((genre) => genre.videogame_id === videogame.id)
+                      .map((genre) => ({
+                        id: genre.genre_id,
+                        name: genre.name,
+                      }));
+
+                    return {
+                      ...videogame,
+                      platforms: platforms,
+                      publisher: publisher,
+                      genres: genres,
+                    };
+                  }
+                );
+                // console.log("composite videogame: ", compositeVideogame);
 
                 res
                   .status(200)
-                  .json({ success: true, data: compositeVideogame });
+                  .json({ success: true, data: compositeVideogames });
               }
             );
           }
@@ -181,6 +187,8 @@ function show(req, res) {
         message: "Videogame not found",
       });
     }
+
+    console.log(videogameResult);
 
     connection.query(
       videogamePlatformsQuery,
