@@ -221,6 +221,7 @@ function show(req, res) {
           return res.status(500).json({ error: "Database query failed" });
 
         videogameResult[0].genres = videogameGenresResult;
+        videogameResult[0].image = req.imagePath + videogameResult[0].image;
 
         res.status(200).json({ success: true, data: videogameResult });
       }
