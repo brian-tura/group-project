@@ -9,6 +9,7 @@ const cors = require("cors");
 const port = process.env.SERVER_PORT || 3000;
 
 const videogamesRouter = require("./router/videogamesRouter");
+const genresRouter = require("./router/genresRouter");
 
 const errorsHandler = require("./middlewares/errorsHandler");
 const notFoundHandler = require("./middlewares/notFound");
@@ -26,6 +27,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/videogames", videogamesRouter);
+app.use("/api/genres", genresRouter);
 
 app.use(errorsHandler);
 app.use(notFoundHandler);
