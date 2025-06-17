@@ -189,7 +189,9 @@ function show(req, res) {
       });
     }
 
-    // console.log(videogameResult);
+    const videogame = videogameResult[0]
+
+    console.log(videogameResult);
 
     connection.query(
       videogamePlatformsQuery,
@@ -198,7 +200,7 @@ function show(req, res) {
         if (err)
           return res.status(500).json({ error: "Database query failed" });
 
-        videogameResult[0].platforms = videogamePlatformResult;
+        videogame.platform = videogamePlatformResult;
       }
     );
 
@@ -209,7 +211,7 @@ function show(req, res) {
         if (err)
           return res.status(500).json({ error: "Database query failed" });
 
-        videogameResult[0].publisher = videogamePublisherResult;
+        videogame.publisher = videogamePublisherResult;
       }
     );
 
@@ -219,11 +221,11 @@ function show(req, res) {
       (err, videogameGenresResult) => {
         if (err)
           return res.status(500).json({ error: "Database query failed" });
+        
+        videogame.image = req.imagePath + videogame.image;
+        videogame.genres = videogameGenresResult;
 
-        videogameResult[0].genres = videogameGenresResult;
-        videogameResult[0].image = req.imagePath + videogameResult[0].image;
-
-        res.status(200).json({ success: true, data: videogameResult });
+        res.status(200).json(videogame);
       }
     );
   });
