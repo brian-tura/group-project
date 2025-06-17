@@ -1,6 +1,6 @@
-const setImagePath = (req, res, next) => {
-    req.imagePath = `${req.protocol}://${req.get('host')}/images/videogames`;
-    next();
-}
+const imagePath = (req, res, next) => {
+  req.imagePath = `${req.protocol}://${req.get("host")}/images/videogames/`;
+  next();
+};
 
-module.exports = setImagePath;
+module.exports = imagePath;

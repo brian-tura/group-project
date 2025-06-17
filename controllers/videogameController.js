@@ -47,7 +47,7 @@ function index(req, res) {
 
   connection.query(videogamesQuery, (err, videogamesResult) => {
     if (err) return res.status(500).json({ error: "Database query failed" });
-    console.log("videogamesResult", videogamesResult);
+    // console.log("videogamesResult", videogamesResult);
 
     // store videogame ids
     const ids = videogamesResult.map((videogame) => videogame.id);
@@ -60,7 +60,7 @@ function index(req, res) {
       (error, videogamePlatformsResults) => {
         if (error)
           return res.status(500).json({ error: "Database query failed" });
-        console.log("videogamePlatforms: ", videogamePlatformsResults);
+        // console.log("videogamePlatforms: ", videogamePlatformsResults);
 
         // get publishers
         connection.query(
@@ -113,6 +113,7 @@ function index(req, res) {
 
                     return {
                       ...videogame,
+                      image: req.imagePath + videogame.image,
                       platforms: platforms,
                       publisher: publisher,
                       genres: genres,
@@ -188,7 +189,7 @@ function show(req, res) {
       });
     }
 
-    console.log(videogameResult);
+    // console.log(videogameResult);
 
     connection.query(
       videogamePlatformsQuery,
@@ -220,6 +221,7 @@ function show(req, res) {
           return res.status(500).json({ error: "Database query failed" });
 
         videogameResult[0].genres = videogameGenresResult;
+        videogameResult[0].image = req.imagePath + videogameResult[0].image;
 
         res.status(200).json({ success: true, data: videogameResult });
       }
