@@ -122,9 +122,7 @@ function index(req, res) {
                 );
                 // console.log("composite videogame: ", compositeVideogame);
 
-                res
-                  .status(200)
-                  .json({ success: true, data: compositeVideogames });
+                res.status(200).json(compositeVideogames);
               }
             );
           }
@@ -189,7 +187,7 @@ function show(req, res) {
       });
     }
 
-    const videogame = videogameResult[0]
+    const videogame = videogameResult[0];
 
     console.log(videogameResult);
 
@@ -221,7 +219,7 @@ function show(req, res) {
       (err, videogameGenresResult) => {
         if (err)
           return res.status(500).json({ error: "Database query failed" });
-        
+
         videogame.image = req.imagePath + videogame.image;
         videogame.genres = videogameGenresResult;
 
@@ -257,7 +255,7 @@ function search(req, res) {
       if (videogamesSearchResult.length === 0)
         return res.status(404).json({ error: "No videogames found" });
 
-      res.status(200).json({ success: true, data: videogamesSearchResult });
+      res.status(200).json(videogamesSearchResult);
     }
   );
 }

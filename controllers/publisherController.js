@@ -6,7 +6,7 @@ function index(req, res) {
   connection.query(publishersQuery, (err, publishersResult) => {
     if (err) return res.status(500).json({ error: "Database query failed" });
 
-    res.status(200).json({ success: true, data: publishersResult });
+    res.status(200).json(publishersResult);
   });
 }
 

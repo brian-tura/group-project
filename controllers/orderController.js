@@ -60,7 +60,7 @@ function index(req, res) {
               videogames: videogames,
             };
           });
-          res.status(200).json({ success: true, data: compositeOrder });
+          res.status(200).json(compositeOrder);
         }
       );
     });
@@ -117,7 +117,7 @@ function show(req, res) {
 
           orderResult[0].videogames = videogameOrderResult;
 
-          res.status(200).json({ success: true, data: orderResult });
+          res.status(200).json(orderResult);
         }
       );
     });
