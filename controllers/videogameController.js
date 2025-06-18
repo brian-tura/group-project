@@ -16,7 +16,7 @@ function index(req, res) {
   const videogamesPlatformQuery = `
     SELECT videogame_id, platforms.id AS platform_id, platforms.name
     FROM videogame_platform
-    JOIN platforms ON videogame_platform.platform_id = platforms.id
+    LEFT JOIN platforms ON videogame_platform.platform_id = platforms.id
     WHERE videogame_id IN (?)
   `;
 
@@ -28,7 +28,7 @@ function index(req, res) {
   const videogamesGenresQuery = `
     SELECT videogame_id, genres.id AS genre_id, genres.name
     FROM videogame_genre
-    JOIN genres ON videogame_genre.genre_id = genres.id
+    LEFT JOIN genres ON videogame_genre.genre_id = genres.id
     WHERE videogame_genre.videogame_id IN (?)
   `;
 
@@ -149,7 +149,7 @@ function show(req, res) {
   const videogamePlatformsQuery = `
     SELECT platforms.id, platforms.name
     FROM videogame_platform
-    JOIN platforms
+    LEFT JOIN platforms
     ON videogame_platform.platform_id = platforms.id
     WHERE videogame_id = ?
   `;
@@ -157,7 +157,7 @@ function show(req, res) {
   const videogamePublisherQuery = `
     SELECT publishers.id, publishers.name
     FROM videogames
-    JOIN publishers
+    LEFT JOIN publishers
     ON videogames.publisher_id = publishers.id
     WHERE videogames.id = ?
   `;
@@ -165,7 +165,7 @@ function show(req, res) {
   const videogameGenresQuery = `
     SELECT genres.id, genres.name
     FROM videogame_genre
-    JOIN genres
+    LEFT JOIN genres
     ON videogame_genre.genre_id = genres.id
     WHERE videogame_genre.videogame_id = ?
   `;

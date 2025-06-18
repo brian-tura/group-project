@@ -12,6 +12,7 @@ const videogamesRouter = require("./router/videogamesRouter");
 const genresRouter = require("./router/genresRouter");
 const platformsRouter = require("./router/platformsRouter");
 const publishersRouter = require("./router/publishersRouter");
+const ordersRouter = require("./router/ordersRouter");
 
 const errorsHandler = require("./middlewares/errorsHandler");
 const notFoundHandler = require("./middlewares/notFound");
@@ -32,6 +33,7 @@ app.use("/api/videogames", videogamesRouter);
 app.use("/api/genres", genresRouter);
 app.use("/api/platforms", platformsRouter);
 app.use("/api/publishers", publishersRouter);
+app.use("/api/orders", ordersRouter);
 
 app.use(errorsHandler);
 app.use(notFoundHandler);
