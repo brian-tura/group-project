@@ -1,53 +1,60 @@
 const connection = require("../data/db.js");
 
 function index(req, res) {
-  /**
-   *************************
-   *    QUERIES
-   *************************
-   * WHERE ... IN -> array -> (?)
-   * WHERE ... = -> single element ?
-   */
-  const videogamesQuery = `
-    SELECT *
-    FROM videogames
-  `;
+  const search = req.query.q;
+  const sort = req.query.sort;
+  const order = req.query.order;
 
-  const videogamesPlatformQuery = `
-    SELECT videogame_id, platforms.id AS platform_id, platforms.name
-    FROM videogame_platform
-    LEFT JOIN platforms ON videogame_platform.platform_id = platforms.id
-    WHERE videogame_id IN (?)
-  `;
+  const sortingColumnsValidation = {
+    name: "name",
+    release: "release_date",
+    price: "price",
+  };
 
-  const videogamesPublisherQuery = `
-    SELECT id, name
-    FROM publishers
-  `;
+  const orderOptionsValidation = {
+    asc: "ASC",
+    desc: "DESC",
+  };
 
-  const videogamesGenresQuery = `
-    SELECT videogame_id, genres.id AS genre_id, genres.name
-    FROM videogame_genre
-    LEFT JOIN genres ON videogame_genre.genre_id = genres.id
-    WHERE videogame_genre.videogame_id IN (?)
-  `;
+  const sortCol = sortingColumnsValidation[sort];
+  const orderOpt = orderOptionsValidation[order];
 
-  /**
-   *************************
-   *    CONNECTIONS
-   * ***********************
-   * 1 - connection to get videogames
-   * 2 - connectio to get videogames platforms by videogames ids
-   * 3 - connectio to get videogames publisherby videogames ids
-   * 4 - connection to get videogames genres by videogames ids
-   *
-   * - use result to filter() platforms and genres and find() publisher
-   * - return NEW composite videogames
-   */
+  let videogamesQuery = "SELECT * FROM videogames";
 
-  connection.query(videogamesQuery, (err, videogamesResult) => {
+  let params = [];
+
+  if (search) {
+    videogamesQuery += " WHERE LOWER(name) LIKE LOWER(?)";
+    params.push(`%${search}%`);
+  }
+  if (sortCol) {
+    videogamesQuery += ` ORDER BY ${sortCol} ${orderOpt || "ASC"}`;
+  }
+
+  connection.query(videogamesQuery, params, (err, videogamesResult) => {
     if (err) return res.status(500).json({ error: "Database query failed" });
-    // console.log("videogamesResult", videogamesResult);
+
+    if (videogamesResult.length === 0)
+      return res.status(404).json({ error: "No videogames found" });
+
+    const videogamesPlatformQuery = `
+        SELECT videogame_id, platforms.id AS platform_id, platforms.name
+        FROM videogame_platform
+        LEFT JOIN platforms ON videogame_platform.platform_id = platforms.id
+        WHERE videogame_id IN (?)
+      `;
+
+    const videogamesPublisherQuery = `
+        SELECT id, name
+        FROM publishers
+      `;
+
+    const videogamesGenresQuery = `
+        SELECT videogame_id, genres.id AS genre_id, genres.name
+        FROM videogame_genre
+        LEFT JOIN genres ON videogame_genre.genre_id = genres.id
+        WHERE videogame_genre.videogame_id IN (?)
+      `;
 
     // store videogame ids
     const ids = videogamesResult.map((videogame) => videogame.id);
@@ -81,11 +88,6 @@ function index(req, res) {
                     .json({ error: "Database query failed" });
                 // console.log("videogame genres: ", videogameGenresResults);
 
-                /**
-                 *
-                 *  composition of videogame with joined properties
-                 *
-                 */
                 const compositeVideogames = videogamesResult.map(
                   (videogame) => {
                     const platforms = videogamePlatformsResults
@@ -231,14 +233,24 @@ function show(req, res) {
 
 function search(req, res) {
   const search = req.query.q;
+  const sort = req.query.sort;
+  const order = req.query.order;
 
   if (!search) return res.status(400).json({ error: "No search value" });
 
-  const videogamesSearchQuery = `
+  console.log(sortCol);
+
+  let videogamesSearchQuery = `
     SELECT *
     FROM videogames
     WHERE LOWER(name) LIKE LOWER(?)
   `;
+
+  if (sortCol) {
+    orderOpt
+      ? (videogamesSearchQuery += `ORDER BY ${sortCol} ${orderOpt}`)
+      : (videogamesSearchQuery += `ORDER BY ${sortCol}`);
+  }
 
   /**
    *************************
@@ -260,4 +272,4 @@ function search(req, res) {
   );
 }
 
-module.exports = { index, show, search };
+module.exports = { index, show };
