@@ -1,72 +1,5 @@
 const connection = require("../data/db");
 
-function index(req, res) {
-  // come in vidogames
-
-  const ordersQuery = `
-    SELECT * FROM orders
-  `;
-
-  const discountsQuery = `
-    SELECT * FROM discounts
-  `;
-
-  const videogameOrdersQuery = `
-    SELECT 
-    videogame_order.order_id,
-    videogames.id AS videogame_id,
-    videogames.name AS videogame_name,
-    videogames.price AS videogame_price
-    FROM videogame_order
-    LEFT JOIN videogames ON videogame_order.videogame_id = videogames.id
-    WHERE videogame_order.order_id IN (?)
-  `;
-
-  connection.query(ordersQuery, (err, ordersResult) => {
-    if (err) return res.status(500).json({ error: "Database query failed" });
-
-    const ids = ordersResult.map((order) => order.id);
-
-    connection.query(discountsQuery, (err, discountsResult) => {
-      if (err) return res.status(500).json({ error: "Database query failed" });
-
-      connection.query(
-        videogameOrdersQuery,
-        [ids],
-        (err, videogamesOrderResult) => {
-          if (err)
-            return res.status(500).json({ error: "Database query failed" });
-
-          const compositeOrder = ordersResult.map((order) => {
-            const discount =
-              discountsResult.find(
-                (discount) => discount.id === order.discount_id
-              ) || null;
-
-            const videogames = videogamesOrderResult
-              .filter((videogame) => videogame.order_id === order.id)
-              .map((videogame) => ({
-                id: videogame.videogame_id,
-                name: videogame.videogame_name,
-                price: videogame.videogame_price,
-              }));
-
-            return {
-              id: order.id,
-              date: order.date,
-              status: order.status,
-              total_amount: order.total_amount,
-              discount: discount,
-              videogames: videogames,
-            };
-          });
-          res.status(200).json(compositeOrder);
-        }
-      );
-    });
-  });
-}
-
 function show(req, res) {
   const id = req.params.id;
 
@@ -103,6 +36,12 @@ function show(req, res) {
   connection.query(orderQuery, [id], (err, orderResult) => {
     if (err) return res.status(500).json({ error: "Database query failed" });
 
+    if (!orderResult || orderResult.length === 0) {
+      return res
+        .status(404)
+        .json({ error: "Not Found", message: "Order not found" });
+    }
+
     connection.query(discountOrderQuery, [id], (err, discountOrderResult) => {
       if (err) return res.status(500).json({ error: "Database query failed" });
 
@@ -124,4 +63,11 @@ function show(req, res) {
   });
 }
 
-module.exports = { index, show };
+function store(req, res) {
+  const { date, status, discount_id, videogames } = req.body;
+
+  if (!date || typeof status !== "boolean" || videogames.length === 0) {
+    return res.status(400).json({ error: "Invalid request data" });
+  }
+}
+module.exports = { show, store };
