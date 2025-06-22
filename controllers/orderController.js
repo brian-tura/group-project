@@ -106,6 +106,7 @@ function preview(req, res) {
         return {
           id: videogame.id,
           name: videogame.name,
+          image: req.imagePath + videogame.image,
           quantity: requested.quantity,
           basePrice: parseFloat(basePrice.toFixed(2)),
           unit_price: parseFloat(pricePerUnit.toFixed(2)),
