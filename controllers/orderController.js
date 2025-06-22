@@ -94,24 +94,27 @@ function preview(req, res) {
       let total = 0;
       const detailedItems = orderVideogamesResult.map((videogame) => {
         const requested = videogames.find((v) => v.id === videogame.id);
-        const pricePerUnit = videogame.offer
-          ? videogame.price * (1 - videogame.offer)
-          : videogame.price;
-        const subtotal = pricePerUnit * requested.quantity;
-        total += subtotal;
+
+        const basePrice = Number(videogame.price);
+        const pricePerUnit = Number(videogame.offer)
+          ? basePrice * (1 - Number(videogame.offer))
+          : basePrice;
+
+        const unitSubtotal = pricePerUnit * requested.quantity;
+        total += unitSubtotal;
 
         return {
           id: videogame.id,
-          title: videogame.title,
+          name: videogame.name,
           quantity: requested.quantity,
-          unit_price: pricePerUnit.toFixed(2),
-          subtotal: subtotal.toFixed(2),
+          basePrice: parseFloat(basePrice.toFixed(2)),
+          unit_price: parseFloat(pricePerUnit.toFixed(2)),
         };
       });
 
       res.status(200).json({
         success: true,
-        total: total.toFixed(2),
+        total: parseFloat(total.toFixed(2)),
         items: detailedItems,
         discount_id,
       });
