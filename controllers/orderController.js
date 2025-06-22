@@ -57,17 +57,19 @@ function show(req, res) {
   });
 }
 
-function store(req, res) {
-  const { date, status, discount_id, videogames } = req.body;
+function preview(req, res) {
+  const { discount_id, videogames } = req.body;
 
   // validation data
-  if (
-    !date ||
-    typeof status !== "boolean" ||
-    !Array.isArray(videogames) ||
-    videogames.length === 0
-  ) {
+  if (!Array.isArray(videogames) || videogames.length === 0) {
     return res.status(400).json({ error: "Invalid request" });
+  }
+  // validation of videogames quantity
+  for (const videogame of videogames) {
+    if (!videogame.quantity || videogame.quantity <= 0)
+      return res
+        .status(400)
+        .json({ error: "Invalid videogame data in request" });
   }
 
   const ids = videogames.map((v) => v.id);
@@ -83,122 +85,38 @@ function store(req, res) {
     [ids],
     (err, orderVideogamesResult) => {
       if (err) return res.status(500).json({ error: "Database query failed" });
-
       if (orderVideogamesResult.length !== ids.length) {
-        return res.status(400).json({ error: "Some videogames not found" });
+        return res
+          .status(404)
+          .json({ error: "One or more videogames not found" });
       }
 
-      let totalAmount = orderVideogamesResult.reduce((total, videogame) => {
-        return total + Number(videogame.price);
-      }, 0);
+      let total = 0;
+      const detailedItems = orderVideogamesResult.map((videogame) => {
+        const requested = videogames.find((v) => v.id === videogame.id);
+        const pricePerUnit = videogame.offer
+          ? videogame.price * (1 - videogame.offer)
+          : videogame.price;
+        const subtotal = pricePerUnit * requested.quantity;
+        total += subtotal;
 
-      console.log("amount before discount:", totalAmount);
+        return {
+          id: videogame.id,
+          title: videogame.title,
+          quantity: requested.quantity,
+          unit_price: pricePerUnit.toFixed(2),
+          subtotal: subtotal.toFixed(2),
+        };
+      });
 
-      // function to complete order
-      const completeOrder = (finalAmount, discountId = null) => {
-        const insertOrderQuery = `
-        INSERT INTO orders (date, status, total_amount, discount_id)
-        VALUES (?, ?, ?, ?)
-      `;
-
-        connection.query(
-          insertOrderQuery,
-          [date, status, finalAmount.toFixed(2), discountId],
-          (err, orderInsertResult) => {
-            if (err) {
-              console.error("Error inserting order:", err);
-              return res.status(500).json({ error: "Failed to create order" });
-            }
-
-            const orderId = orderInsertResult.insertId;
-
-            // prepear videogame_order association
-            const videogameOrderData = ids.map((videogameId) => [
-              videogameId,
-              orderId,
-              1,
-            ]);
-
-            // insert videogame_order association
-            const insertVideogameOrderQuery = `
-            INSERT INTO videogame_order (videogame_id, order_id, quantity)
-            VALUES ?
-          `;
-
-            connection.query(
-              insertVideogameOrderQuery,
-              [videogameOrderData],
-              (err, videogameOrderResult) => {
-                if (err) {
-                  console.error("Error inserting videogame orders:", err);
-                  return res.status(500).json({
-                    error: "Failed to associate videogames with order",
-                  });
-                }
-
-                // return created order
-                res.status(201).json({
-                  message: "Order created successfully",
-                  order: {
-                    id: orderId,
-                    date: date,
-                    status: status,
-                    total_amount: finalAmount.toFixed(2),
-                    discount_id: discountId,
-                    videogames: orderVideogamesResult.map((v) => ({
-                      id: v.id,
-                      name: v.name,
-                      price: v.price,
-                    })),
-                  },
-                });
-              }
-            );
-          }
-        );
-      };
-
-      // if discount_id -> apply
-      if (discount_id) {
-        const discountQuery = `
-        SELECT *
-        FROM discounts
-        WHERE id = ? AND (end_date IS NULL OR end_date >= CURDATE()) AND start_date <= CURDATE()
-      `;
-
-        connection.query(
-          discountQuery,
-          [discount_id],
-          (err, discountResult) => {
-            if (err) {
-              console.error("Error querying discount:", err);
-              return res.status(500).json({ error: "Database query failed" });
-            }
-
-            if (discountResult.length === 0) {
-              return res
-                .status(400)
-                .json({ error: "Invalid or expired discount code" });
-            }
-
-            const discount = discountResult[0];
-            const discountAmount = Number(discount.amount);
-
-            // apply discount
-            const finalAmount = totalAmount * (1 - discountAmount);
-
-            console.log("discount: ", discountAmount * 100 + "%");
-            console.log("final amount: ", finalAmount);
-
-            completeOrder(finalAmount, discount_id);
-          }
-        );
-      } else {
-        // if !discount -> base total
-        completeOrder(totalAmount);
-      }
+      res.status(200).json({
+        success: true,
+        total: total.toFixed(2),
+        items: detailedItems,
+        discount_id,
+      });
     }
   );
 }
 
-module.exports = { show, store };
+module.exports = { show, preview };
