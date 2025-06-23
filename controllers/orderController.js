@@ -58,7 +58,7 @@ function show(req, res) {
 }
 
 function preview(req, res) {
-  const { discount_id, videogames } = req.body;
+  const { videogames, discount_id } = req.body;
 
   // validation data
   if (!Array.isArray(videogames) || videogames.length === 0) {
@@ -95,9 +95,9 @@ function preview(req, res) {
       const detailedItems = orderVideogamesResult.map((videogame) => {
         const requested = videogames.find((v) => v.id === videogame.id);
 
-        const basePrice = Number(videogame.price);
-        const pricePerUnit = Number(videogame.offer)
-          ? basePrice * (1 - Number(videogame.offer))
+        const basePrice = parseFloat(videogame.price);
+        const pricePerUnit = parseFloat(videogame.offer)
+          ? basePrice * (1 - parseFloat(videogame.offer))
           : basePrice;
 
         const unitSubtotal = pricePerUnit * requested.quantity;
@@ -113,12 +113,48 @@ function preview(req, res) {
         };
       });
 
-      res.status(200).json({
-        success: true,
-        total: parseFloat(total.toFixed(2)),
-        items: detailedItems,
-        discount_id,
-      });
+      if (discount_id) {
+        const discountQuery = `
+        SELECT *
+        FROM discounts
+        WHERE id = ? AND (end_date IS NULL OR end_date >= CURDATE()) AND start_date <= CURDATE()
+      `;
+
+        connection.query(
+          discountQuery,
+          [discount_id],
+          (err, discountResult) => {
+            if (err)
+              return res.status(500).json({ error: "Database query failed" });
+
+            if (discountResult === 0)
+              return res.status(400).json({ error: "Invalid discount code" });
+
+            const discount = discountResult[0];
+            const discountCode = discount
+              ? discount.discount_code
+              : "Invalid discount";
+            const discountAmount = discount ? parseFloat(discount.amount) : 0;
+
+            const finalAmount = total * (1 - discountAmount);
+
+            res.status(200).json({
+              discount: true,
+              discount_code: discountCode,
+              discount_value: discountAmount,
+              previous_total: parseFloat(total.toFixed(2)),
+              discounted_total: parseFloat(finalAmount.toFixed(2)),
+              items: detailedItems,
+            });
+          }
+        );
+      } else {
+        return res.status(200).json({
+          success: true,
+          total: parseFloat(total.toFixed(2)),
+          items: detailedItems,
+        });
+      }
     }
   );
 }
