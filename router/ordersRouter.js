@@ -8,4 +8,6 @@ router.get("/:id", orderController.show);
 router.post("/preview", orderController.preview);
 // router.post("/", orderController.store);
 
+router.post("/payments", orderController.pay);
+
 module.exports = router;
