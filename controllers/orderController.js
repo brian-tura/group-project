@@ -58,7 +58,7 @@ function show(req, res) {
 }
 
 function preview(req, res) {
-  const { videogames, discount_id } = req.body;
+  const { videogames, discount_code } = req.body;
 
   // validation data
   if (!Array.isArray(videogames) || videogames.length === 0) {
@@ -113,16 +113,20 @@ function preview(req, res) {
         };
       });
 
-      if (discount_id) {
+      if (discount_code) {
+        // validation discount
+        if (typeof discount_code !== "string") {
+          return res.status(400).json({ error: "Invalid discount type" });
+        }
         const discountQuery = `
         SELECT *
         FROM discounts
-        WHERE id = ? AND (end_date IS NULL OR end_date >= CURDATE()) AND start_date <= CURDATE()
+        WHERE discount_code = ? AND (end_date IS NULL OR end_date >= CURDATE()) AND start_date <= CURDATE()
       `;
 
         connection.query(
           discountQuery,
-          [discount_id],
+          [discount_code],
           (err, discountResult) => {
             if (err)
               return res.status(500).json({ error: "Database query failed" });
