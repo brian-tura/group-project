@@ -5,6 +5,6 @@ const videogameController = require(`../controllers/videogameController.js`);
 
 router.get(`/`, videogameController.index);
 
-router.get(`/:id`, videogameController.show);
+router.get(`/:slug`, videogameController.show);
 
 module.exports = router;

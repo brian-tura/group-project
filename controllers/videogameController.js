@@ -135,7 +135,7 @@ function index(req, res) {
 }
 
 function show(req, res) {
-  const id = req.params.id;
+  const slug = req.params.slug;
 
   /**
    *************************
@@ -143,7 +143,7 @@ function show(req, res) {
    *************************
    */
   const videogameQuery = `
-    SELECT * FROM videogames WHERE id = ?
+    SELECT * FROM videogames WHERE slug = ?
   `;
 
   const videogamePlatformsQuery = `
@@ -179,7 +179,7 @@ function show(req, res) {
    * 3 - connectio to get videogame publisher by videogame id
    * 4 - connection to get videogame genres by videogame id
    */
-  connection.query(videogameQuery, [id], (err, videogameResult) => {
+  connection.query(videogameQuery, [slug], (err, videogameResult) => {
     if (err) return res.status(500).json({ error: "Database query failed" });
 
     if (videogameResult.length === 0 || !videogameResult) {
@@ -191,7 +191,9 @@ function show(req, res) {
 
     const videogame = videogameResult[0];
 
-    console.log(videogameResult);
+    const id = videogame.id;
+
+    console.log(videogame);
 
     connection.query(
       videogamePlatformsQuery,
@@ -231,45 +233,45 @@ function show(req, res) {
   });
 }
 
-function search(req, res) {
-  const search = req.query.q;
-  const sort = req.query.sort;
-  const order = req.query.order;
+// function search(req, res) {
+//   const search = req.query.q;
+//   const sort = req.query.sort;
+//   const order = req.query.order;
 
-  if (!search) return res.status(400).json({ error: "No search value" });
+//   if (!search) return res.status(400).json({ error: "No search value" });
 
-  console.log(sortCol);
+//   console.log(sortCol);
 
-  let videogamesSearchQuery = `
-    SELECT *
-    FROM videogames
-    WHERE LOWER(name) LIKE LOWER(?)
-  `;
+//   let videogamesSearchQuery = `
+//     SELECT *
+//     FROM videogames
+//     WHERE LOWER(name) LIKE LOWER(?)
+//   `;
 
-  if (sortCol) {
-    orderOpt
-      ? (videogamesSearchQuery += `ORDER BY ${sortCol} ${orderOpt}`)
-      : (videogamesSearchQuery += `ORDER BY ${sortCol}`);
-  }
+//   if (sortCol) {
+//     orderOpt
+//       ? (videogamesSearchQuery += `ORDER BY ${sortCol} ${orderOpt}`)
+//       : (videogamesSearchQuery += `ORDER BY ${sortCol}`);
+//   }
 
-  /**
-   *************************
-   *    CONNECTION
-   * ***********************
-   * 1 - connection to get videogame by q param
-   */
-  connection.query(
-    videogamesSearchQuery,
-    [`%${search}%`],
-    (err, videogamesSearchResult) => {
-      if (err) return res.status(500).json({ error: "Database query failed" });
+//   /**
+//    *************************
+//    *    CONNECTION
+//    * ***********************
+//    * 1 - connection to get videogame by q param
+//    */
+//   connection.query(
+//     videogamesSearchQuery,
+//     [`%${search}%`],
+//     (err, videogamesSearchResult) => {
+//       if (err) return res.status(500).json({ error: "Database query failed" });
 
-      if (videogamesSearchResult.length === 0)
-        return res.status(404).json({ error: "No videogames found" });
+//       if (videogamesSearchResult.length === 0)
+//         return res.status(404).json({ error: "No videogames found" });
 
-      res.status(200).json(videogamesSearchResult);
-    }
-  );
-}
+//       res.status(200).json(videogamesSearchResult);
+//     }
+//   );
+// }
 
 module.exports = { index, show };
