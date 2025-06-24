@@ -13,9 +13,16 @@ const genresRouter = require("./router/genresRouter");
 const platformsRouter = require("./router/platformsRouter");
 const publishersRouter = require("./router/publishersRouter");
 const ordersRouter = require("./router/ordersRouter");
+// const webhookRoute = require("./router/webhook");
 
 const errorsHandler = require("./middlewares/errorsHandler");
 const notFoundHandler = require("./middlewares/notFound");
+
+app.use(
+  "/webhook",
+  express.raw({ type: "application/json" }),
+  require("./router/webhook")
+);
 
 app.use(express.json());
 

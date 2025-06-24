@@ -98,13 +98,13 @@ function index(req, res) {
                         id: platform.platform_id,
                         name: platform.name,
                       }));
-                    console.log(platforms);
+                    // console.log(platforms);
 
                     const publisher =
                       videogamePublisherResult.find(
                         (publisher) => publisher.id === videogame.publisher_id
                       ) || null;
-                    console.log(publisher);
+                    // console.log(publisher);
 
                     const genres = videogameGenresResults
                       .filter((genre) => genre.videogame_id === videogame.id)
