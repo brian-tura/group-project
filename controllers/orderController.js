@@ -291,45 +291,79 @@ async function pay(req, res) {
           .json({ error: "One or more videogames not found" });
       }
 
-      let total = 0;
-      const line_items = result.map((game) => {
-        const requested = videogames.find((v) => v.id === game.id);
-        const basePrice = parseFloat(game.price);
-        const offer = parseFloat(game.offer) || 0;
-        const price = basePrice * (1 - offer);
-        total += price * requested.quantity;
-        return {
-          price_data: {
-            currency: "eur",
-            product_data: { name: game.name },
-            unit_amount: Math.round(price * 100),
-          },
-          quantity: requested.quantity,
-        };
-      });
-
-      const metadata = {
-        videogames: JSON.stringify(videogames),
-      };
+      let discountAmount = 0;
       if (discount_code) {
-        metadata.discount_code = discount_code;
+        connection.query(
+          `SELECT amount FROM discounts
+           WHERE discount_code = ?
+             AND start_date <= CURDATE()
+             AND (end_date IS NULL OR end_date >= CURDATE())`,
+          [discount_code],
+          async (err, discountRows) => {
+            if (err)
+              return res.status(500).json({ error: "Database query failed" });
+
+            if (discountRows.length === 0)
+              return res.status(400).json({ error: "Invalid discount code" });
+
+            discountAmount = parseFloat(discountRows[0].amount);
+
+            processPayment(discountAmount);
+          }
+        );
+      } else {
+        processPayment(0);
       }
 
-      try {
-        const session = await stripe.checkout.sessions.create({
-          payment_method_types: ["card"],
-          mode: "payment",
-          line_items,
-          metadata,
-          success_url: "http://localhost:5173/success",
-          cancel_url: "http://localhost:5173/cancel",
+      function processPayment(discount) {
+        const line_items = result.map((game) => {
+          const requested = videogames.find((v) => v.id === game.id);
+          const basePrice = parseFloat(game.price);
+          const offer = parseFloat(game.offer) || 0;
+          const priceAfterOffer = basePrice * (1 - offer);
+          const finalPrice = priceAfterOffer * (1 - discount);
+          return {
+            price_data: {
+              currency: "eur",
+              product_data: { name: game.name },
+              unit_amount: Math.round(finalPrice * 100),
+            },
+            quantity: requested.quantity,
+          };
         });
-        return res.json({ url: session.url });
-      } catch (stripeErr) {
-        console.error("Stripe session error:", stripeErr);
-        return res
-          .status(500)
-          .json({ error: "Stripe session creation failed" });
+
+        const stripeTotal =
+          line_items.reduce((total, item) => {
+            return total + item.price_data.unit_amount * item.quantity;
+          }, 0) / 100;
+
+        console.log("Totale che verrà addebitato da Stripe:", stripeTotal);
+
+        const metadata = {
+          videogames: JSON.stringify(videogames),
+        };
+        if (discount_code) {
+          metadata.discount_code = discount_code;
+        }
+
+        stripe.checkout.sessions
+          .create({
+            payment_method_types: ["card"],
+            mode: "payment",
+            line_items,
+            metadata,
+            success_url: "http://localhost:5173/success",
+            cancel_url: "http://localhost:5173/cancel",
+          })
+          .then((session) => {
+            return res.json({ url: session.url });
+          })
+          .catch((stripeErr) => {
+            console.error("Stripe session error:", stripeErr);
+            return res
+              .status(500)
+              .json({ error: "Stripe session creation failed" });
+          });
       }
     }
   );
