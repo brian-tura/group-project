@@ -40,6 +40,8 @@ router.post(
       }
       const discountCode = meta.discount_code || null;
       const totalAmount = session.amount_total / 100;
+      const customerEmail =
+        session.customer_details?.email || session.customer_email || "";
 
       const getDiscountId = (cb) => {
         if (!discountCode) return cb(null, null);
@@ -161,7 +163,7 @@ router.post(
 
                     const mailOptions = {
                       from: `"Boogaming" <${process.env.ETHEREAL_USER}>`,
-                      to: process.env.EMAIL_TO,
+                      to: customerEmail,
                       subject: `Nuovo ordine #${orderId} ricevuto`,
                       text: `Hai ricevuto un nuovo ordine (ID: ${orderId}) per un totale di €${totalAmount.toFixed(
                         2
