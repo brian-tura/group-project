@@ -122,8 +122,19 @@ router.post(
                       .map(
                         (v) => `
                         <tr>
-                          <td>${v.name}</td>
-                          <td>${v.quantity}</td>
+                          <td style="border-bottom: 1px solid #eee; padding: 8px;">${
+                            v.name
+                          }</td>
+                          <td style="border-bottom: 1px solid #eee; padding: 8px;">${
+                            v.quantity
+                          }</td>
+                          <td style="border-bottom: 1px solid #eee; padding: 8px;">
+                            Y${Math.floor(Math.random() * 999)}-V${Math.floor(
+                          Math.random() * 999
+                        )}-R${Math.floor(Math.random() * 999)}-B${Math.floor(
+                          Math.random() * 999
+                        )}
+                          </td>
                         </tr>`
                       )
                       .join("");
@@ -131,18 +142,19 @@ router.post(
                     const htmlContent = `
                       <h1>Ecco il riepilogo del tuo ordine:</h1>
                       <p><strong>ID ordine:</strong> ${orderId}</p>
-                      <table border="1" cellpadding="8" cellspacing="0">
+                      <table style="border-collapse: collapse; width: 100%; font-family: sans-serif;">
                         <thead>
                           <tr>
-                            <th>Videogioco</th>
-                            <th>Quantità</th>
+                            <th style="text-align: left; border-bottom: 2px solid #ccc; padding: 8px;">Videogioco</th>
+                            <th style="text-align: left; border-bottom: 2px solid #ccc; padding: 8px;">Quantità</th>
+                            <th style="text-align: left; border-bottom: 2px solid #ccc; padding: 8px;">Codice seriale</th>
                           </tr>
                         </thead>
                         <tbody>
                           ${orderHtml}
                         </tbody>
                       </table>
-                      <p style="font-size: 32px;"><strong>Totale ordine:</strong> €${totalAmount.toFixed(
+                      <p style="font-size: 32px; font-family: sans-serif;"><strong>Totale ordine:</strong> €${totalAmount.toFixed(
                         2
                       )}</p>
                     `;
